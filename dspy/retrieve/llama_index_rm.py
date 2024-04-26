@@ -39,7 +39,7 @@ class LlamaIndexRM(dspy.Retrieve):
         """Set similarity top k of retriever."""
         self.retriever.similarity_top_k = k
 
-    def forward(self, query: str) -> list[dspy.Example]:
+    def forward(self, query: str, k: int = None) -> list[dspy.Example]:
         """Forward function for the LI retriever.
 
         This is the function that is called to retrieve the top k examples for a given query.
@@ -48,16 +48,22 @@ class LlamaIndexRM(dspy.Retrieve):
 
         Args:
             query (str): The query to retrieve examples for
+            k (int): Number of nodes/examples to retrieve; defaults to None.
+                When None, uses the k set in the retriever at instantiation
 
         Returns:
             List[dspy.Example]: A list of examples retrieved by the retriever
         """
+        if k is not None:
+            self.similarity_top_k = k
+
         raw = self.retriever.retrieve(query)
 
         return [
             dspy.Example(
                 text=result.text,
                 score=result.score,
+                long_text=result.text,
             )
             for result in raw
         ]
